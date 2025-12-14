@@ -45,6 +45,11 @@ public class HologramManager {
             coloredLines.add(Hex.colorize(line));
         }
 
+        Hologram existingHologram = DHAPI.getHologram(data.getId());
+        if (existingHologram != null) {
+            existingHologram.delete();
+        }
+
         Hologram hologram = DHAPI.createHologram(data.getId(), holoLoc, coloredLines);
         holograms.put(data.getId(), hologram);
     }
@@ -53,6 +58,11 @@ public class HologramManager {
         Hologram hologram = holograms.remove(id);
         if (hologram != null) {
             hologram.delete();
+        }
+
+        Hologram dhHologram = DHAPI.getHologram(id);
+        if (dhHologram != null) {
+            dhHologram.delete();
         }
     }
 
@@ -81,9 +91,22 @@ public class HologramManager {
     }
 
     public void removeAllHolograms() {
-        for (Hologram hologram : holograms.values()) {
-            hologram.delete();
+        for (String id : new ArrayList<>(holograms.keySet())) {
+            Hologram hologram = holograms.get(id);
+            if (hologram != null) {
+                hologram.delete();
+            }
         }
         holograms.clear();
+
+        ConfigurationSection chestsSection = plugin.getConfig().getConfigurationSection("chests");
+        if (chestsSection != null) {
+            for (String id : chestsSection.getKeys(false)) {
+                Hologram dhHologram = DHAPI.getHologram(id);
+                if (dhHologram != null) {
+                    dhHologram.delete();
+                }
+            }
+        }
     }
 }

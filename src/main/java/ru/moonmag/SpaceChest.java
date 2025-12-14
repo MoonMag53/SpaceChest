@@ -48,6 +48,13 @@ public class SpaceChest extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (chestManager != null) {
+            chestManager.shutdown();
+        }
+        if (hologramManager != null) {
+            hologramManager.removeAllHolograms();
+        }
+
         getLogger().info("§x§f§f§7§c§0§0╔");
         getLogger().info("§x§f§f§7§c§0§0║ §fОтключение плагина...");
         getLogger().info("§x§f§f§7§c§0§0║ §x§f§f§0§0§0§0Плагин отключился! §fКодер: §x§f§f§6§e§0§0SpaceDev");

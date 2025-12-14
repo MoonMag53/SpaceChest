@@ -27,7 +27,7 @@ messages:
   # Сообщение, когда отсутствуют права
   no-permission: "&#ff5555У вас нет прав!"
   # Подсказка при вводе /spacechest
-  command-usage: "&fИспользуй&7: &6/spacechest reload, loot"
+  command-usage: "&fИспользование&7: &6/spacechest reload&7, &6loot"
   # Подсказка при вводе /spacechest loot
   gui-usage: "&fИспользование&7: &6/spacechest loot название сундука"
   # Сообщение, при перезагрузке конфига
