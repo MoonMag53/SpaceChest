@@ -2,58 +2,26 @@ package ru.moonmag.managers;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import ru.moonmag.SpaceChest;
 import ru.moonmag.models.LootItem;
 import ru.moonmag.models.LootTable;
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 public class LootManager {
     private final SpaceChest plugin;
     private final Map<String, LootTable> lootTables = new HashMap<>();
-    private File lootFile;
 
     public LootManager(SpaceChest plugin) {
         this.plugin = plugin;
-        this.lootFile = new File(plugin.getDataFolder(), "loot.yml");
     }
 
     public void loadLootTables() {
         lootTables.clear();
 
-        if (!lootFile.exists()) {
-            try {
-                lootFile.createNewFile();
-            } catch (IOException e) {
-            }
-        }
-
-        FileConfiguration config = YamlConfiguration.loadConfiguration(lootFile);
-
-        for (String tableName : config.getKeys(false)) {
-            LootTable table = new LootTable(tableName);
-            ConfigurationSection itemsSection = config.getConfigurationSection(tableName);
-
-            if (itemsSection != null) {
-                for (String key : itemsSection.getKeys(false)) {
-                    double chance = itemsSection.getDouble(key + ".chance");
-
-                    if (itemsSection.contains(key + ".item")) {
-                        ItemStack item = itemsSection.getItemStack(key + ".item");
-                        if (item != null) {
-                            table.addItem(new LootItem(item, chance));
-                        }
-                    }
-                }
-            }
-            lootTables.put(tableName, table);
-        }
+        Map<String, LootTable> loadedTables = plugin.getDatabaseManager().loadLootTables();
+        lootTables.putAll(loadedTables);
     }
 
     public void saveLootTable(String tableName, LootTable table) {
@@ -61,41 +29,19 @@ public class LootManager {
             return;
         }
 
-        FileConfiguration config = YamlConfiguration.loadConfiguration(lootFile);
+        plugin.getDatabaseManager().ensureConnection();
+        plugin.getDatabaseManager().saveLootTable(tableName, table);
 
-        config.set(tableName, null);
-
-        if (table.getItems().isEmpty()) {
-            config.createSection(tableName);
-        } else {
-            int index = 0;
-            for (LootItem item : table.getItems()) {
-                String path = tableName + "." + index;
-                config.set(path + ".item", item.getItemStack());
-                config.set(path + ".chance", item.getChance());
-                index++;
-            }
-        }
-
-        try {
-            config.save(lootFile);
-            lootTables.put(tableName, table);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        lootTables.put(tableName, table);
     }
 
     public void deleteLootTable(String tableName) {
         if (tableName == null || tableName.trim().isEmpty()) return;
 
-        FileConfiguration config = YamlConfiguration.loadConfiguration(lootFile);
-        config.set(tableName, null);
+        plugin.getDatabaseManager().ensureConnection();
+        plugin.getDatabaseManager().deleteLootTable(tableName);
 
-        try {
-            config.save(lootFile);
-            lootTables.remove(tableName);
-        } catch (IOException e) {
-        }
+        lootTables.remove(tableName);
     }
 
     public void fillChest(Location loc, String tableName) {
@@ -110,7 +56,15 @@ public class LootManager {
         inv.clear();
 
         LootTable table = lootTables.get(tableName);
-        if (table == null) return;
+        if (table == null) {
+            plugin.getDatabaseManager().ensureConnection();
+            table = plugin.getDatabaseManager().loadLootTable(tableName);
+            if (table != null) {
+                lootTables.put(tableName, table);
+            } else {
+                return;
+            }
+        }
 
         List<ItemStack> droppedItems = new ArrayList<>();
         Random random = new Random();
@@ -136,7 +90,15 @@ public class LootManager {
     }
 
     public LootTable getLootTable(String name) {
-        return lootTables.get(name);
+        LootTable table = lootTables.get(name);
+        if (table == null) {
+            plugin.getDatabaseManager().ensureConnection();
+            table = plugin.getDatabaseManager().loadLootTable(name);
+            if (table != null) {
+                lootTables.put(name, table);
+            }
+        }
+        return table;
     }
 
     public Map<String, LootTable> getLootTables() {

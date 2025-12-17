@@ -37,6 +37,19 @@ messages:
   # Сообщение, когда пытаются забрать предмет слишком быстро (если включена антикража)
   anti-steal-warning: "&#ff5555Не так быстро! Подожди немного."
 
+# Тип хранения данных
+# sqlite - локальное хранение в файле database.db
+# mysql - хранение на MySQL сервере
+db_type: sqlite
+
+# Настройки для MySQL (используются только если db_type: mysql)
+database:
+  host: localhost
+  port: 3306
+  database: minecraft
+  username: root
+  password: password
+
 # === АНТИКРАЖА ===
 anti-steal:
   enabled: true # Включена ли защита

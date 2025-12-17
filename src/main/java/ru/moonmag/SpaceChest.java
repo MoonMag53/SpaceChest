@@ -3,10 +3,7 @@ package ru.moonmag;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.moonmag.commands.SpaceChestCommand;
 import ru.moonmag.listeners.ChestListener;
-import ru.moonmag.managers.ChestManager;
-import ru.moonmag.managers.ConfigManager;
-import ru.moonmag.managers.HologramManager;
-import ru.moonmag.managers.LootManager;
+import ru.moonmag.managers.*;
 import ru.moonmag.utils.UpdateChecker;
 import ru.moonmag.utils.Metrics;
 
@@ -16,17 +13,22 @@ public class SpaceChest extends JavaPlugin {
     private ChestManager chestManager;
     private LootManager lootManager;
     private HologramManager hologramManager;
+    private DatabaseManager databaseManager;
 
     @Override
     public void onEnable() {
         instance = this;
 
         configManager = new ConfigManager(this);
+        configManager.load();
+
+        databaseManager = new DatabaseManager(this);
+        databaseManager.connect();
+
         lootManager = new LootManager(this);
         chestManager = new ChestManager(this);
         hologramManager = new HologramManager(this);
 
-        configManager.load();
         lootManager.loadLootTables();
         chestManager.loadChests();
 
@@ -54,6 +56,9 @@ public class SpaceChest extends JavaPlugin {
         if (hologramManager != null) {
             hologramManager.removeAllHolograms();
         }
+        if (databaseManager != null) {
+            databaseManager.disconnect();
+        }
 
         getLogger().info("§x§f§f§7§c§0§0╔");
         getLogger().info("§x§f§f§7§c§0§0║ §fОтключение плагина...");
@@ -68,6 +73,10 @@ public class SpaceChest extends JavaPlugin {
 
     public ConfigManager getConfigManager() {
         return configManager;
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
     }
 
     public ChestManager getChestManager() {

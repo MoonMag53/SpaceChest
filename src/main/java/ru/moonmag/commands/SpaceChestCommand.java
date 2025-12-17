@@ -37,6 +37,10 @@ public class SpaceChestCommand implements CommandExecutor, TabCompleter {
             plugin.getHologramManager().removeAllHolograms();
 
             plugin.getConfigManager().reload();
+
+            plugin.getDatabaseManager().disconnect();
+            plugin.getDatabaseManager().connect();
+
             plugin.getLootManager().loadLootTables();
             plugin.getChestManager().loadChests();
 
