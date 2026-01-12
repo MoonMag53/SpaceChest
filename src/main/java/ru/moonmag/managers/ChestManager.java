@@ -5,6 +5,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Directional;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.scheduler.BukkitTask;
 import ru.moonmag.SpaceChest;
@@ -73,13 +75,27 @@ public class ChestManager {
 
             int reloadInterval = chestConfig.getInt("reload-interval");
 
+            BlockFace facing;
+            try {
+                facing = BlockFace.valueOf(chestConfig.getString("facing", "NORTH").toUpperCase());
+            } catch (IllegalArgumentException e) {
+                facing = BlockFace.NORTH;
+            }
+
             SpaceChestData data = new SpaceChestData(
                     id,
                     loc,
                     blockType,
                     reloadInterval,
-                    id
+                    id,
+                    facing
             );
+
+            if (block.getBlockData() instanceof Directional) {
+                Directional directional = (Directional) block.getBlockData();
+                directional.setFacing(facing);
+                block.setBlockData(directional);
+            }
 
             chests.put(id, data);
             locationMap.put(getLocationKey(loc), id);
